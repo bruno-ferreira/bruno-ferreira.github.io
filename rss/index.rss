@@ -1,4 +1,4 @@
-<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Here be Maps</title><description>Personal musings about maps, web and everything in between.</description><link>http://bruno-ferreira.github.io/</link><generator>Ghost 0.5</generator><lastBuildDate>Fri, 10 Apr 2015 16:53:25 GMT</lastBuildDate><atom:link href="http://bruno-ferreira.github.io/rss/" rel="self" type="application/rss+xml"/><ttl>60</ttl><item><title>Improving OSM street geocodes using Nominatim</title><description>&lt;p&gt;I've been playing with OSM data for a couple a years and while having a blast I've come across a few issues that can be improved and bring OSM to its full potential as a mainstream map service.&lt;/p&gt;
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Here be Maps</title><description>Personal musings about maps, web and everything in between.</description><link>http://bruno-ferreira.github.io/</link><generator>Ghost 0.5</generator><lastBuildDate>Fri, 10 Apr 2015 17:19:41 GMT</lastBuildDate><atom:link href="http://bruno-ferreira.github.io/rss/" rel="self" type="application/rss+xml"/><ttl>60</ttl><item><title>Improving OSM street geocodes using Nominatim</title><description>&lt;p&gt;I've been playing with OSM data for a couple a years and while having a blast I've come across a few issues that can be improved and bring OSM to its full potential as a mainstream map service.&lt;/p&gt;
 
 &lt;p&gt;When I started to check &lt;a href="http://download.geofabrik.de/europe/portugal-latest.osm.pbf"&gt;Portugal&lt;/a&gt; OSM dataset from &lt;a href="http://download.geofabrik.de/"&gt;Geofabrik&lt;/a&gt; I noticed that some street data had a lot of missing tags regarding the location (city, place, town, postalcode, etc). Of course this all ends up to the users to add this kind of information but currently OSM can provide this update using their geocoding service.&lt;/p&gt;
 
@@ -30,7 +30,7 @@ WHERE id = 4319262;
 
 &lt;p&gt;&lt;a href="http://wiki.openstreetmap.org/wiki/Nominatim"&gt;Nominatim&lt;/a&gt; is a tool to search OSM data by name and address and to generate synthetic addresses of OSM points (reverse geocoding).&lt;/p&gt;
 
-&lt;p&gt;I started to fiddle with the reverse geocode API with the following paramateres:&lt;/p&gt;
+&lt;p&gt;I started to fiddle with the reverse geocode API with the following parameters:&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;URL&lt;/strong&gt;&lt;/p&gt;
 
