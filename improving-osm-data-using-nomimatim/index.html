@@ -1,0 +1,238 @@
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>Improving OSM street geocodes using Nominatim</title>
+    <meta name="description" content="">
+
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" href="../favicon.ico">
+
+    <link rel="stylesheet" type="text/css" href="../assets/css/screen.css?v=0f333b58e3">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic%7COpen+Sans:700,400">
+
+    <link rel="canonical" href="http://localhost:2368/improving-osm-data-using-nomimatim/">
+    
+    <meta property="og:site_name" content="Here be Maps">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Improving OSM street geocodes using Nominatim">
+    <meta property="og:description" content="I've been playing with OSM data for a couple a years and while having a blast I've come across a few issues that can be improved and bring OSM to its full potential as a mainstream map service. When I...">
+    <meta property="og:url" content="http://localhost:2368/improving-osm-data-using-nomimatim/">
+    <meta property="article:published_time" content="2015-04-10T09:46:57.351Z">
+    <meta property="article:modified_time" content="2015-04-10T14:04:29.360Z">
+    <meta property="article:tag" content="OSM">
+    
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Improving OSM street geocodes using Nominatim">
+    <meta name="twitter:description" content="I've been playing with OSM data for a couple a years and while having a blast I've come across a few issues that can be improved and bring OSM to its full potential as a mainstream map service. When I...">
+    <meta name="twitter:url" content="http://localhost:2368/improving-osm-data-using-nomimatim/">
+    
+    <script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Article",
+    "publisher": "Here be Maps",
+    "author": {
+        "@type": "Person",
+        "name": "Bruno Ferreira",
+        "url": "http://localhost:2368/author/bruno",
+        "sameAs": null
+    },
+    "headline": "Improving OSM street geocodes using Nominatim",
+    "url": "http://localhost:2368/improving-osm-data-using-nomimatim/",
+    "datePublished": "2015-04-10T09:46:57.351Z",
+    "dateModified": "2015-04-10T14:04:29.360Z",
+    "keywords": "OSM",
+    "description": "I&#x27;ve been playing with OSM data for a couple a years and while having a blast I&#x27;ve come across a few issues that can be improved and bring OSM to its full potential as a mainstream map service. When I..."
+}
+    </script>
+
+    <meta name="generator" content="Ghost 0.5">
+    <link rel="alternate" type="application/rss+xml" title="Here be Maps" href="http://localhost:2368/rss/">
+</head>
+<body class="post-template tag-osm nav-closed">
+
+    <div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="index.html#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+            <li class="nav-home" role="presentation"><a href="http://localhost:2368/">Home</a></li>
+    </ul>
+    <a class="subscribe-button icon-feed" href="../rss/index.rss">Subscribe</a>
+</div>
+<span class="nav-cover"></span>
+
+
+    <div class="site-wrapper">
+
+        
+
+
+<header class="main-header post-head no-cover">
+    <nav class="main-nav  clearfix">
+        
+            <a class="menu-button" href="index.html#"><span class="burger">☰</span><span class="word">Menu</span></a>
+    </nav>
+</header>
+
+<main class="content" role="main">
+    <article class="post tag-osm featured">
+
+        <header class="post-header">
+            <h1 class="post-title">Improving OSM street geocodes using Nominatim</h1>
+            <section class="post-meta">
+                <time class="post-date" datetime="2015-04-10">10 April 2015</time>  on <a href="../tag/osm/">OSM</a>
+            </section>
+        </header>
+
+        <section class="post-content">
+            <p>I've been playing with OSM data for a couple a years and while having a blast I've come across a few issues that can be improved and bring OSM to its full potential as a mainstream map service.</p>
+
+<p>When I started to check <a href="http://download.geofabrik.de/europe/portugal-latest.osm.pbf">Portugal</a> OSM dataset from <a href="http://download.geofabrik.de/">Geofabrik</a> I noticed that some street data had a lot of missing tags regarding the location (city, place, town, postalcode, etc). Of course this all ends up to the users to add this kind of information but currently OSM can provide this update using their geocoding service.</p>
+
+<p>Let me guide you with a quick example.</p>
+
+<p>Loading up the data into a PostgreSQL database and querying to see the tags of a way entry</p>
+
+<pre><code class="language-sql">SELECT id, tags  
+FROM osm.ways  
+WHERE id = 4319262;  
+</code></pre>
+
+<p>I get the following result:</p>
+
+<pre><code>   id    |       tags
+---------+--------------------------
+ 4319262 | "lit"=&gt;"yes",
+         | "ref"=&gt;"A 12",
+         | "lanes"=&gt;"3",
+         | "oneway"=&gt;"yes",
+         | "highway"=&gt;"motorway",
+         | "int_ref"=&gt;"E 01"
+(1 row)
+</code></pre>
+
+<p>With the exception of it's geometry I don't have <em>any</em> way to find out where this street is located. But using the search of the OpenStreetMap website I was able to get the information that I needed using the results from OpenStreetMap Nominatim.</p>
+
+<h3 id="enternominatim">Enter Nominatim</h3>
+
+<p><a href="http://wiki.openstreetmap.org/wiki/Nominatim">Nominatim</a> is a tool to search OSM data by name and address and to generate synthetic addresses of OSM points (reverse geocoding).</p>
+
+<p>I started to fiddle with the reverse geocode API with the following paramateres:</p>
+
+<p><strong>URL</strong></p>
+
+<blockquote>
+  <p><a href="http://nominatim.openstreetmap.org/reverse">http://nominatim.openstreetmap.org/reverse</a></p>
+</blockquote>
+
+<p><strong>Output format</strong></p>
+
+<blockquote>
+  <p>format=[xml|json]</p>
+</blockquote>
+
+<p><strong>OSM data type</strong></p>
+
+<blockquote>
+  <p>osm_type=[N|W|R]</p>
+</blockquote>
+
+<p><strong>OSM id</strong></p>
+
+<blockquote>
+  <p>osm_id=</p>
+</blockquote>
+
+<p><strong>address details</strong></p>
+
+<blockquote>
+  <p>addressdetails=[0|1]</p>
+</blockquote>
+
+<p><strong>Final URL link</strong></p>
+
+<p><a href="http://nominatim.openstreetmap.org/reverse?format=json&amp;osm_type=W&amp;osm_id=4319262">http://nominatim.openstreetmap.org/reverse?format=json&amp;osm_type=W&amp;osm_id=4319262</a></p>
+
+<p>Fired this bad boy into my browser and the API returned</p>
+
+<pre><code class="language-json">{
+    "place_id": "46776850",
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0 http://www.openstreetmap.org/copyright",
+    "osm_type": "way",
+    "osm_id": "4319262",
+    "lat": "38.7860443",
+    "lon": "-9.1061436",
+    "display_name": "A 12, Portela, Sacavém, Lisboa, 2685,    Portugal",
+    "address": {
+        "road": "A 12",
+        "suburb": "Portela",
+        "town": "Sacavém",
+        "county": "Lisboa",
+        "postcode": "2685",
+        "country": "Portugal",
+        "country_code": "pt"
+    }
+}
+</code></pre>
+
+<p>Notice that the API returns the full street geocode, from suburb to country. This is exactly the information that the streets element tags needs to have.</p>
+
+<p>So, why isn't OSM making the update between the data and the API service? It is <em>fairly easy</em> to create a script that does this kind of update, with fallback and error checks.</p>
+
+<p>Having this kind of information available in the data, as an offline solution would bring so much value, since you could create an geocode search tool and used in all sort of apps and services offline.</p>
+        </section>
+
+        <footer class="post-footer">
+
+
+
+            <section class="author">
+                <h4><a href="../author/bruno/">Bruno Ferreira</a></h4>
+
+                    <p>Read <a href="../author/bruno/">more posts</a> by this author.</p>
+                <div class="author-meta">
+                    <span class="author-location icon-location">Porto, Portugal</span>
+                    
+                </div>
+            </section>
+
+
+            <section class="share">
+                <h4>Share this post</h4>
+                <a class="icon-twitter" href="https://twitter.com/share?text=Improving%20OSM%20street%20geocodes%20using%20Nominatim&amp;url=http://localhost:2368/improving-osm-data-using-nomimatim/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                    <span class="hidden">Twitter</span>
+                </a>
+                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://localhost:2368/improving-osm-data-using-nomimatim/" onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                    <span class="hidden">Facebook</span>
+                </a>
+                <a class="icon-google-plus" href="https://plus.google.com/share?url=http://localhost:2368/improving-osm-data-using-nomimatim/" onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                    <span class="hidden">Google+</span>
+                </a>
+            </section>
+
+        </footer>
+
+    </article>
+</main>
+
+
+
+        <footer class="site-footer clearfix">
+            <section class="copyright"><a href="http://localhost:2368">Here be Maps</a> © 2015</section>
+            <section class="poweredby">Proudly published with <a href="https://ghost.org">Ghost</a></section>
+        </footer>
+
+    </div>
+
+    <script src="../public/jquery.js?v=0f333b58e3"></script>
+
+    <script type="text/javascript" src="../assets/js/jquery.fitvids.js?v=0f333b58e3"></script>
+    <script type="text/javascript" src="../assets/js/index.js?v=0f333b58e3"></script>
+
+</body>

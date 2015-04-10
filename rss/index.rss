@@ -1,66 +1,95 @@
-<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Here be Maps</title><description>Personal musings about maps, web and everything in between.</description><link>http://localhost:2368/</link><generator>Ghost 0.5</generator><lastBuildDate>Wed, 08 Apr 2015 16:46:15 GMT</lastBuildDate><atom:link href="http://localhost:2368/rss/" rel="self" type="application/rss+xml"/><ttl>60</ttl><item><title>Welcome to Ghost</title><description>&lt;p&gt;You're live! Nice. We've put together a little post to introduce you to the Ghost editor and get you started. You can manage your content by signing in to the admin area at &lt;code&gt;&amp;lt;your blog URL&amp;gt;/ghost/&lt;/code&gt;. When you arrive, you can select this post from a list on the left and see a preview of it on the right. Click the little pencil icon at the top of the preview to edit this post and read the next section!&lt;/p&gt;
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>Here be Maps</title><description>Personal musings about maps, web and everything in between.</description><link>http://localhost:2368/</link><generator>Ghost 0.5</generator><lastBuildDate>Fri, 10 Apr 2015 14:05:54 GMT</lastBuildDate><atom:link href="http://localhost:2368/rss/" rel="self" type="application/rss+xml"/><ttl>60</ttl><item><title>Improving OSM street geocodes using Nominatim</title><description>&lt;p&gt;I've been playing with OSM data for a couple a years and while having a blast I've come across a few issues that can be improved and bring OSM to its full potential as a mainstream map service.&lt;/p&gt;
 
-&lt;h2 id="gettingstarted"&gt;Getting Started&lt;/h2&gt;
+&lt;p&gt;When I started to check &lt;a href="http://download.geofabrik.de/europe/portugal-latest.osm.pbf"&gt;Portugal&lt;/a&gt; OSM dataset from &lt;a href="http://download.geofabrik.de/"&gt;Geofabrik&lt;/a&gt; I noticed that some street data had a lot of missing tags regarding the location (city, place, town, postalcode, etc). Of course this all ends up to the users to add this kind of information but currently OSM can provide this update using their geocoding service.&lt;/p&gt;
 
-&lt;p&gt;Ghost uses something called Markdown for writing. Essentially, it's a shorthand way to manage your post formatting as you write!&lt;/p&gt;
+&lt;p&gt;Let me guide you with a quick example.&lt;/p&gt;
 
-&lt;p&gt;Writing in Markdown is really easy. In the left hand panel of Ghost, you simply write as you normally would. Where appropriate, you can use &lt;em&gt;shortcuts&lt;/em&gt; to &lt;strong&gt;style&lt;/strong&gt; your content. For example, a list:&lt;/p&gt;
+&lt;p&gt;Loading up the data into a PostgreSQL database and querying to see the tags of a way entry&lt;/p&gt;
 
-&lt;ul&gt;
-&lt;li&gt;Item number one&lt;/li&gt;
-&lt;li&gt;Item number two
-&lt;ul&gt;&lt;li&gt;A nested item&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;A final item&lt;/li&gt;
-&lt;/ul&gt;
+&lt;pre&gt;&lt;code class="language-sql"&gt;SELECT id, tags  
+FROM osm.ways  
+WHERE id = 4319262;  
+&lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;or with numbers!&lt;/p&gt;
+&lt;p&gt;I get the following result:&lt;/p&gt;
 
-&lt;ol&gt;
-&lt;li&gt;Remember to buy some milk  &lt;/li&gt;
-&lt;li&gt;Drink the milk  &lt;/li&gt;
-&lt;li&gt;Tweet that I remembered to buy the milk, and drank it&lt;/li&gt;
-&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;   id    |       tags
+---------+--------------------------
+ 4319262 | "lit"=&amp;gt;"yes",
+         | "ref"=&amp;gt;"A 12",
+         | "lanes"=&amp;gt;"3",
+         | "oneway"=&amp;gt;"yes",
+         | "highway"=&amp;gt;"motorway",
+         | "int_ref"=&amp;gt;"E 01"
+(1 row)
+&lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id="links"&gt;Links&lt;/h3&gt;
+&lt;p&gt;With the exception of it's geometry I don't have &lt;em&gt;any&lt;/em&gt; way to find out where this street is located. But using the search of the OpenStreetMap website I was able to get the information that I needed using the results from OpenStreetMap Nominatim.&lt;/p&gt;
 
-&lt;p&gt;Want to link to a source? No problem. If you paste in a URL, like &lt;a href="http://ghost.org"&gt;http://ghost.org&lt;/a&gt; - it'll automatically be linked up. But if you want to customise your anchor text, you can do that too! Here's a link to &lt;a href="http://ghost.org"&gt;the Ghost website&lt;/a&gt;. Neat.&lt;/p&gt;
+&lt;h3 id="enternominatim"&gt;Enter Nominatim&lt;/h3&gt;
 
-&lt;h3 id="whataboutimages"&gt;What about Images?&lt;/h3&gt;
+&lt;p&gt;&lt;a href="http://wiki.openstreetmap.org/wiki/Nominatim"&gt;Nominatim&lt;/a&gt; is a tool to search OSM data by name and address and to generate synthetic addresses of OSM points (reverse geocoding).&lt;/p&gt;
 
-&lt;p&gt;Images work too! Already know the URL of the image you want to include in your article? Simply paste it in like this to make it show up:&lt;/p&gt;
+&lt;p&gt;I started to fiddle with the reverse geocode API with the following paramateres:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src="https://ghost.org/images/ghost.png" alt="The Ghost Logo"&gt;&lt;/p&gt;
-
-&lt;p&gt;Not sure which image you want to use yet? That's ok too. Leave yourself a descriptive placeholder and keep writing. Come back later and drag and drop the image in to upload:&lt;/p&gt;
-
-&lt;h3 id="quoting"&gt;Quoting&lt;/h3&gt;
-
-&lt;p&gt;Sometimes a link isn't enough, you want to quote someone on what they've said. It was probably very wisdomous. Is wisdomous a word? Find out in a future release when we introduce spellcheck! For now - it's definitely a word.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;URL&lt;/strong&gt;&lt;/p&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;Wisdomous - it's definitely a word.&lt;/p&gt;
+  &lt;p&gt;&lt;a href="http://nominatim.openstreetmap.org/reverse"&gt;http://nominatim.openstreetmap.org/reverse&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;h3 id="workingwithcode"&gt;Working with Code&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Output format&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;Got a streak of geek? We've got you covered there, too. You can write inline &lt;code&gt;&amp;lt;code&amp;gt;&lt;/code&gt; blocks really easily with back ticks. Want to show off something more comprehensive? 4 spaces of indentation gets you there.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;format=[xml|json]&lt;/p&gt;
+&lt;/blockquote&gt;
 
-&lt;pre&gt;&lt;code&gt;.awesome-thing {
-    display: block;
-    width: 100%;
+&lt;p&gt;&lt;strong&gt;OSM data type&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;osm_type=[N|W|R]&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;OSM id&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;osm_id=&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;address details&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;addressdetails=[0|1]&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;Final URL link&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href="http://nominatim.openstreetmap.org/reverse?format=json&amp;amp;osm_type=W&amp;amp;osm_id=4319262"&gt;http://nominatim.openstreetmap.org/reverse?format=json&amp;amp;osm_type=W&amp;amp;osm_id=4319262&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Fired this bad boy into my browser and the API returned&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class="language-json"&gt;{
+    "place_id": "46776850",
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0 http://www.openstreetmap.org/copyright",
+    "osm_type": "way",
+    "osm_id": "4319262",
+    "lat": "38.7860443",
+    "lon": "-9.1061436",
+    "display_name": "A 12, Portela, Sacavém, Lisboa, 2685,    Portugal",
+    "address": {
+        "road": "A 12",
+        "suburb": "Portela",
+        "town": "Sacavém",
+        "county": "Lisboa",
+        "postcode": "2685",
+        "country": "Portugal",
+        "country_code": "pt"
+    }
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id="readyforabreak"&gt;Ready for a Break?&lt;/h3&gt;
+&lt;p&gt;Notice that the API returns the full street geocode, from suburb to country. This is exactly the information that the streets element tags needs to have.&lt;/p&gt;
 
-&lt;p&gt;Throw 3 or more dashes down on any new line and you've got yourself a fancy new divider. Aw yeah.&lt;/p&gt;
+&lt;p&gt;So, why isn't OSM making the update between the data and the API service? It is &lt;em&gt;fairly easy&lt;/em&gt; to create a script that does this kind of update, with fallback and error checks.&lt;/p&gt;
 
-&lt;hr&gt;
-
-&lt;h3 id="advancedusage"&gt;Advanced Usage&lt;/h3&gt;
-
-&lt;p&gt;There's one fantastic secret about Markdown. If you want, you can write plain old HTML and it'll still work! Very flexible.&lt;/p&gt;
-
-&lt;p&gt;&lt;input type="text" placeholder="I'm an input field!"&gt;&lt;/p&gt;
-
-&lt;p&gt;That should be enough to get you started. Have fun - and let us know what you think :)&lt;/p&gt;</description><link>http://localhost:2368/welcome-to-ghost/</link><guid isPermaLink="false">91b9add8-2003-424c-8eb0-8c5b41665899</guid><category>Getting Started</category><dc:creator>Bruno Ferreira</dc:creator><pubDate>Fri, 03 Apr 2015 16:30:12 GMT</pubDate></item></channel></rss>
+&lt;p&gt;Having this kind of information available in the data, as an offline solution would bring so much value, since you could create an geocode search tool and used in all sort of apps and services offline.&lt;/p&gt;</description><link>http://localhost:2368/improving-osm-data-using-nomimatim/</link><guid isPermaLink="false">a548ca4b-30f2-48d2-aa7e-49ce581c41a3</guid><category>OSM</category><dc:creator>Bruno Ferreira</dc:creator><pubDate>Fri, 10 Apr 2015 09:46:57 GMT</pubDate></item></channel></rss>
